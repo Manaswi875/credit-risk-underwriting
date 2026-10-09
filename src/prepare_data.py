@@ -43,9 +43,10 @@ EXPANDED = [
 # LendingClub's own risk grade: the incumbent model we benchmark against.
 INCUMBENT = ["sub_grade", "int_rate"]
 
-# Outcome / profit fields (NOT model inputs).
+# Outcome / profit / geography fields (NOT model inputs). zip_code (3-digit) is
+# kept only to join area demographics for the fair-lending review.
 OUTCOME = ["loan_status", "issue_d", "term", "funded_amnt", "total_pymnt",
-           "addr_state"]
+           "addr_state", "zip_code"]
 
 
 def main() -> None:

@@ -1,0 +1,49 @@
+{
+  "main_model_uncalibrated": {
+    "auc": 0.6979,
+    "brier": 0.11881,
+    "log_loss": 0.38958,
+    "ece_pct_pts": 1.395,
+    "mean_predicted": 0.1349,
+    "observed_rate": 0.1489,
+    "top_decile_predicted": 0.3219,
+    "top_decile_observed": 0.3351
+  },
+  "uncalibrated_2012_13": {
+    "auc": 0.6875,
+    "brier": 0.11988,
+    "log_loss": 0.39366,
+    "ece_pct_pts": 1.9,
+    "mean_predicted": 0.1299,
+    "observed_rate": 0.1489,
+    "top_decile_predicted": 0.3044,
+    "top_decile_observed": 0.3192
+  },
+  "platt_on_2014": {
+    "auc": 0.6875,
+    "brier": 0.11967,
+    "log_loss": 0.3927,
+    "ece_pct_pts": 1.318,
+    "mean_predicted": 0.1361,
+    "observed_rate": 0.1489,
+    "top_decile_predicted": 0.3079,
+    "top_decile_observed": 0.3192
+  },
+  "isotonic_on_2014": {
+    "auc": 0.6874,
+    "brier": 0.11966,
+    "log_loss": 0.39269,
+    "ece_pct_pts": 1.294,
+    "mean_predicted": 0.1359,
+    "observed_rate": 0.1489,
+    "top_decile_predicted": 0.298,
+    "top_decile_observed": 0.3193
+  },
+  "_meta": {
+    "fit": "2012-2013",
+    "calibrate": "2014",
+    "test": "2015",
+    "platt_slope": 0.9563,
+    "platt_intercept": -0.0187
+  }
+}

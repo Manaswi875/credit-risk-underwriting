@@ -1,0 +1,270 @@
+{
+  "_meta": {
+    "policy": "approve lowest-risk 80% (single portfolio cutoff)",
+    "demographics": "Census ACS 2017-2021 5-year, aggregated ZCTA -> 3-digit ZIP",
+    "national_median_household_income": 69021.0,
+    "loans_matched_to_area": 282927,
+    "loans_unmatched": 99,
+    "share_in_majority_minority_areas": 0.3779,
+    "share_in_lmi_areas": 0.1047,
+    "minority_share_quartile_edges": [
+      0.023,
+      0.261,
+      0.423,
+      0.603,
+      0.995
+    ]
+  },
+  "air_by_minority_quartile": [
+    {
+      "scorer": "incumbent",
+      "group": "Q1 (lowest)",
+      "approval_rate": 0.8024,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "incumbent",
+      "group": "Q2",
+      "approval_rate": 0.8044,
+      "air_vs_reference": 1.0025
+    },
+    {
+      "scorer": "incumbent",
+      "group": "Q3",
+      "approval_rate": 0.8046,
+      "air_vs_reference": 1.0027
+    },
+    {
+      "scorer": "incumbent",
+      "group": "Q4 (highest)",
+      "approval_rate": 0.7885,
+      "air_vs_reference": 0.9826
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Q1 (lowest)",
+      "approval_rate": 0.8,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Q2",
+      "approval_rate": 0.805,
+      "air_vs_reference": 1.0063
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Q3",
+      "approval_rate": 0.8071,
+      "air_vs_reference": 1.0089
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Q4 (highest)",
+      "approval_rate": 0.788,
+      "air_vs_reference": 0.9851
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Q1 (lowest)",
+      "approval_rate": 0.801,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Q2",
+      "approval_rate": 0.8054,
+      "air_vs_reference": 1.0055
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Q3",
+      "approval_rate": 0.8065,
+      "air_vs_reference": 1.0068
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Q4 (highest)",
+      "approval_rate": 0.787,
+      "air_vs_reference": 0.9826
+    }
+  ],
+  "air_majority_minority": [
+    {
+      "scorer": "incumbent",
+      "group": "Majority-minority area",
+      "approval_rate": 0.7941,
+      "air_vs_reference": 0.9883
+    },
+    {
+      "scorer": "incumbent",
+      "group": "Other areas",
+      "approval_rate": 0.8036,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Majority-minority area",
+      "approval_rate": 0.7953,
+      "air_vs_reference": 0.9905
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Other areas",
+      "approval_rate": 0.8029,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Majority-minority area",
+      "approval_rate": 0.7939,
+      "air_vs_reference": 0.9878
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Other areas",
+      "approval_rate": 0.8037,
+      "air_vs_reference": 1.0
+    }
+  ],
+  "air_lmi_area": [
+    {
+      "scorer": "incumbent",
+      "group": "Low/moderate-income area",
+      "approval_rate": 0.766,
+      "air_vs_reference": 0.9527
+    },
+    {
+      "scorer": "incumbent",
+      "group": "Other areas",
+      "approval_rate": 0.804,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Low/moderate-income area",
+      "approval_rate": 0.7624,
+      "air_vs_reference": 0.9478
+    },
+    {
+      "scorer": "xgb_core",
+      "group": "Other areas",
+      "approval_rate": 0.8044,
+      "air_vs_reference": 1.0
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Low/moderate-income area",
+      "approval_rate": 0.758,
+      "air_vs_reference": 0.9417
+    },
+    {
+      "scorer": "xgb_expanded",
+      "group": "Other areas",
+      "approval_rate": 0.8049,
+      "air_vs_reference": 1.0
+    }
+  ],
+  "differential_prediction_xgb_expanded": [
+    {
+      "group": "Q1 (lowest)",
+      "loans": 70840,
+      "observed_default": 0.1428,
+      "predicted_default": 0.13500000536441803,
+      "auc": 0.6975,
+      "dimension": "minority quartile"
+    },
+    {
+      "group": "Q2",
+      "loans": 71079,
+      "observed_default": 0.1458,
+      "predicted_default": 0.133200004696846,
+      "auc": 0.6936,
+      "dimension": "minority quartile"
+    },
+    {
+      "group": "Q3",
+      "loans": 70563,
+      "observed_default": 0.1482,
+      "predicted_default": 0.13279999792575836,
+      "auc": 0.6995,
+      "dimension": "minority quartile"
+    },
+    {
+      "group": "Q4 (highest)",
+      "loans": 70445,
+      "observed_default": 0.1587,
+      "predicted_default": 0.1386999934911728,
+      "auc": 0.7,
+      "dimension": "minority quartile"
+    },
+    {
+      "group": "Majority-minority area",
+      "loans": 106930,
+      "observed_default": 0.1562,
+      "predicted_default": 0.13660000264644623,
+      "auc": 0.7005,
+      "dimension": "majority-minority"
+    },
+    {
+      "group": "Other areas",
+      "loans": 175997,
+      "observed_default": 0.1444,
+      "predicted_default": 0.1339000016450882,
+      "auc": 0.6959,
+      "dimension": "majority-minority"
+    },
+    {
+      "group": "Low/moderate-income area",
+      "loans": 29627,
+      "observed_default": 0.1694,
+      "predicted_default": 0.14800000190734863,
+      "auc": 0.6892,
+      "dimension": "LMI area"
+    },
+    {
+      "group": "Other areas",
+      "loans": 253300,
+      "observed_default": 0.1465,
+      "predicted_default": 0.13339999318122864,
+      "auc": 0.6984,
+      "dimension": "LMI area"
+    }
+  ],
+  "proxy_screen_abs_spearman_top10": {
+    "mort_acc": 0.142,
+    "num_il_tl": 0.086,
+    "avg_cur_bal": 0.085,
+    "mo_sin_old_il_acct": 0.084,
+    "tot_cur_bal": 0.074,
+    "dti": 0.072,
+    "credit_history_yrs": 0.07,
+    "tot_hi_cred_lim": 0.069,
+    "log_annual_inc": 0.065,
+    "total_acc": 0.059
+  },
+  "reason_codes_principal_share": {
+    "Loan payment / income": 0.3246,
+    "Accounts opened, last 24 mo": 0.2378,
+    "Debt-to-income": 0.1048,
+    "FICO score": 0.069,
+    "Loan purpose": 0.0585,
+    "Employment length": 0.0434,
+    "Age of oldest revolving acct": 0.0381,
+    "Months since newest card": 0.0204,
+    "Bankcard utilization": 0.017,
+    "Total revolving limit": 0.0152
+  },
+  "reason_codes_in_top2_share": {
+    "Loan payment / income": 0.3838,
+    "Accounts opened, last 24 mo": 0.3772,
+    "FICO score": 0.2796,
+    "Debt-to-income": 0.2551,
+    "Employment length": 0.1094,
+    "Loan purpose": 0.0917,
+    "Age of oldest revolving acct": 0.0812,
+    "Months since newest card": 0.0659,
+    "Available card credit": 0.0428,
+    "Bankcard utilization": 0.0348
+  }
+}

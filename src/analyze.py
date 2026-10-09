@@ -7,7 +7,6 @@ Outputs (reports/):
   fig_tradeoff.png         approval rate vs. default rate
   fig_profit.png           realized profit per applicant vs. approval rate
   fig_auc.png              AUC by model, all applicants vs. near-prime
-  fig_calibration.png      predicted vs. observed default by decile
   fig_drivers.png          top risk drivers (SHAP) for the expanded model
 """
 import json
@@ -55,6 +54,36 @@ LABELS = {
     "revol_util": "Revolving utilization",
     "mort_acc": "Mortgage accounts",
     "credit_history_yrs": "Credit history length",
+    "loan_amnt": "Loan amount",
+    "emp_length_yrs": "Employment length",
+    "verification_status": "Income verification",
+    "bc_util": "Bankcard utilization",
+    "revol_bal": "Revolving balance",
+    "total_rev_hi_lim": "Total revolving limit",
+    "tot_cur_bal": "Total current balance",
+    "avg_cur_bal": "Average account balance",
+    "total_bc_limit": "Total bankcard limit",
+    "total_il_high_credit_limit": "Installment loan limits",
+    "open_acc": "Open credit accounts",
+    "num_actv_rev_tl": "Active revolving accounts",
+    "num_rev_tl_bal_gt_0": "Revolving accts with balance",
+    "num_bc_tl": "Bankcard accounts",
+    "num_il_tl": "Installment accounts",
+    "num_op_rev_tl": "Open revolving accounts",
+    "num_sats": "Accounts in good standing",
+    "pct_tl_nvr_dlq": "% of accounts never delinquent",
+    "inq_last_6mths": "Credit inquiries, last 6 mo",
+    "mo_sin_old_il_acct": "Age of oldest installment acct",
+    "mo_sin_rcnt_rev_tl_op": "Months since newest revolving acct",
+    "mo_sin_rcnt_tl": "Months since newest account",
+    "delinq_2yrs": "Delinquencies, last 2 yrs",
+    "mths_since_last_delinq": "Months since last delinquency",
+    "num_accts_ever_120_pd": "Accounts ever 120+ days late",
+    "num_tl_90g_dpd_24m": "Accounts 90+ days late, last 2 yrs",
+    "pub_rec": "Public records",
+    "pub_rec_bankruptcies": "Bankruptcies",
+    "tax_liens": "Tax liens",
+    "collections_12_mths_ex_med": "Collections, last 12 mo",
 }
 
 plt.rcParams.update({
@@ -161,26 +190,6 @@ def fig_auc(metrics):
     plt.close(fig)
 
 
-def fig_calibration(df):
-    fig, ax = plt.subplots(figsize=(5, 4.2))
-    for col, label, color in [("score_xgb_expanded", "XGBoost - expanded", BLUE),
-                              ("score_logit_expanded", "Logistic - expanded", ORANGE)]:
-        dec = pd.qcut(df[col], 10, labels=False)
-        g = df.groupby(dec).agg(pred=(col, "mean"), obs=("default", "mean"))
-        ax.plot(g["pred"] * 100, g["obs"] * 100, "o-", color=color, label=label,
-                markersize=6, markeredgecolor="white", markeredgewidth=1.5)
-    lim = [0, 45]
-    ax.plot(lim, lim, "--", color=INK_2, linewidth=1, label="Perfect calibration")
-    ax.set_xlim(lim), ax.set_ylim(lim)
-    ax.set_xlabel("Predicted default rate (%)")
-    ax.set_ylabel("Observed default rate (%)")
-    ax.set_title("Calibration by score decile (2015)")
-    ax.legend(loc="upper left", fontsize=8)
-    fig.tight_layout()
-    fig.savefig(REPORTS / "fig_calibration.png")
-    plt.close(fig)
-
-
 def fig_drivers(test_features):
     """Mean |SHAP| for the expanded XGBoost model via native tree contributions."""
     model = xgb.XGBClassifier()
@@ -233,7 +242,6 @@ def main() -> None:
     fig_tradeoff(preds)
     fig_profit(preds)
     fig_auc(metrics)
-    fig_calibration(preds)
 
     df = pd.read_parquet(ROOT / "data" / "processed" / "loans.parquet")
     drivers = fig_drivers(df[df["vintage"] == 2015])

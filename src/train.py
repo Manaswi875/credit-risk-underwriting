@@ -76,6 +76,21 @@ def xgb_frame(df, num, cat):
     return X
 
 
+def fit_xgb(train, num, cat):
+    """XGBoost, early-stopped on a random 10% of the training vintages."""
+    X_tr, y_tr = xgb_frame(train, num, cat), train["default"].values
+    val = np.random.default_rng(0).random(len(X_tr)) < 0.1
+    xgb = XGBClassifier(
+        n_estimators=2000, learning_rate=0.03, max_depth=5,
+        min_child_weight=50, subsample=0.8, colsample_bytree=0.7,
+        reg_lambda=5.0, tree_method="hist", enable_categorical=True,
+        eval_metric="auc", early_stopping_rounds=100, n_jobs=-1,
+    )
+    xgb.fit(X_tr[~val], y_tr[~val], eval_set=[(X_tr[val], y_tr[val])],
+            verbose=False)
+    return xgb
+
+
 def main() -> None:
     df = pd.read_parquet(DATA)
     train = df[df["vintage"] <= 2014].reset_index(drop=True)
@@ -93,18 +108,7 @@ def main() -> None:
         preds[f"logit_{name}"] = lr.predict_proba(test[num + cat])[:, 1]
         joblib.dump(lr, MODELS / f"logit_{name}.joblib")
 
-        # XGBoost, early-stopped on a random 10% of the training vintages
-        X_tr = xgb_frame(train, num, cat)
-        rng = np.random.default_rng(0)
-        val = rng.random(len(X_tr)) < 0.1
-        xgb = XGBClassifier(
-            n_estimators=2000, learning_rate=0.03, max_depth=5,
-            min_child_weight=50, subsample=0.8, colsample_bytree=0.7,
-            reg_lambda=5.0, tree_method="hist", enable_categorical=True,
-            eval_metric="auc", early_stopping_rounds=100, n_jobs=-1,
-        )
-        xgb.fit(X_tr[~val], y_tr[~val], eval_set=[(X_tr[val], y_tr[val])],
-                verbose=False)
+        xgb = fit_xgb(train, num, cat)
         preds[f"xgb_{name}"] = xgb.predict_proba(xgb_frame(test, num, cat))[:, 1]
         xgb.save_model(MODELS / f"xgb_{name}.json")
         print(f"  xgb_{name}: best iteration {xgb.best_iteration}")
@@ -120,7 +124,7 @@ def main() -> None:
               f"near-prime AUC {results[name]['near_prime']['auc']:.4f}")
 
     out = test[["default", "net_profit", "funded_amnt", "fico", "sub_grade",
-                "int_rate", "addr_state"]].copy()
+                "int_rate", "addr_state", "zip_code"]].copy()
     for name, p in preds.items():
         out[f"score_{name}"] = p
     out.to_parquet(REPORTS / "test_predictions.parquet", index=False)

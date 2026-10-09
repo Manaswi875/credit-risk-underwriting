@@ -1,6 +1,8 @@
 # Credit Risk Underwriting: Does More Data Beat a Better Algorithm?
 
-Default-prediction models for unsecured personal loans, built on **589K LendingClub loans (2012–2015)** and judged the way a lender would: on an **out-of-time** test set, against the **incumbent risk grade**, and in terms of **approvals, losses, and profit** rather than accuracy alone.
+Default-prediction models for unsecured personal loans, built on **589K LendingClub loans (2012–2015)** and judged the way a lender would: on an **out-of-time** test set, against the **incumbent risk grade**, in terms of **approvals, losses, and profit** rather than accuracy alone, and with a **fair-lending review** and **probability recalibration**.
+
+> **Non-technical reader?** Start with the [one-page summary](SUMMARY.md).
 
 ## Executive summary
 
@@ -61,22 +63,60 @@ With only the core application fields, neither logistic regression nor XGBoost b
 
 ![Profit vs approval rate](reports/fig_profit.png)
 
-## Limitations and next steps
+## Probability calibration
 
-These are honest caveats, and natural next steps:
+Ranking risk well is not the same as predicting the *level* of risk correctly. Pricing, loss forecasts, and reserves depend on the level. To recalibrate without touching the test year, `src/calibrate.py` fits the expanded XGBoost on 2012–2013, calibrates on 2014 (the latest vintage a lender would have in hand), and evaluates on 2015.
+
+| 2015 test | Uncalibrated | Platt scaling | Isotonic |
+|---|---|---|---|
+| Expected calibration error (pct pts) | 1.90 | 1.32 | **1.29** |
+| Brier score | 0.1199 | 0.1197 | 0.1197 |
+| Mean predicted vs. observed default | 13.0% vs. 14.9% | 13.6% vs. 14.9% | 13.6% vs. 14.9% |
+
+**Finding:** recalibration cuts calibration error by about a third, but a gap remains. The Platt slope is 0.96, so the model's risk *shape* is nearly right. The miss is a level shift: 2015 loans simply defaulted more than 2014 loans (14.9% vs. 13.7%). No calibrator fit on past data can anticipate that. The production answer is ongoing monitoring of the gap between predicted and actual defaults by vintage, with periodic recalibration as early-delinquency data arrives, not a one-time fix.
+
+Trade-off: holding out 2014 for calibration means the calibrated model trains on less recent data (AUC 0.688 vs. 0.698 for the main model). In practice you refit on all vintages and carry the calibration mapping forward, re-checking it each quarter.
+
+![Calibration](reports/fig_calibration.png)
+
+## Fair-lending review
+
+LendingClub data has no applicant race, ethnicity, or sex, and none of those are model inputs. To test for disparate impact, `src/fair_lending.py` uses an **area-level proxy**, the standard approach in redlining reviews. Each loan's 3-digit ZIP is joined to **Census ACS 2017–2021** data on minority population share and median household income (99.97% of loans matched).
+
+**1. Adverse impact ratio (AIR).** This is each group's approval rate divided by the reference group's, under an 80% approval policy. The four-fifths rule flags an AIR below 0.80.
+
+| Group (reference) | LendingClub grade | XGBoost core | XGBoost expanded |
+|---|---|---|---|
+| Highest-minority quartile (vs. lowest) | 0.983 | 0.985 | 0.983 |
+| Majority-minority areas (vs. other) | 0.988 | 0.991 | 0.988 |
+| Low/moderate-income areas (vs. other) | 0.953 | 0.948 | **0.942** |
+
+All groups clear the threshold by a wide margin. The new model **does not widen the gap by area minority share**. It does slightly lower the LMI-area ratio versus the incumbent (0.942 vs. 0.953). That is the item to monitor and the starting point for a less-discriminatory-alternative search.
+
+![Fairness](reports/fig_fairness.png)
+
+**2. Differential prediction.** The model does not over-predict risk for any group. Its default predictions run *below* actual defaults everywhere (the vintage drift above), and the gap is largest in highest-minority areas (13.9% predicted vs. 15.9% observed) and LMI areas (14.8% vs. 16.9%). Ranking quality (AUC) is consistent across minority-share quartiles (0.694–0.700) and slightly lower in LMI areas (0.689).
+
+**3. Proxy screen.** No model input is a strong proxy for area minority share. The highest absolute Spearman correlation is 0.14 (number of mortgage accounts). ZIP code and state are not model inputs.
+
+**4. Adverse-action reason codes.** ECOA and Regulation B require specific reasons for a decline. For each declined applicant, the top risk-increasing SHAP contributions give those reasons. The most common principal reasons are payment-to-income (32%), accounts opened in the last 24 months (24%), and debt-to-income (10%). All are specific and actionable, and none is a demographic proxy.
+
+![Reason codes](reports/fig_reason_codes.png)
+
+## Limitations and next steps
 
 1. **Approved-only population (selection bias).** LendingClub data contains only approved loans, so we never see how rejected applicants would have performed. A production model would need reject inference.
 2. **Profit is simplified.** "Net profit" is total cash collected minus amount funded. It ignores cost of funds, servicing costs, and the time value of money, and it uses LendingClub's own pricing. Read it as directional.
-3. **Calibration drift.** The 2015 vintage defaulted more than 2012–2014 (14.9% vs. 13.3%), so the models under-predict risk in the highest-risk deciles (`reports/fig_calibration.png`). Rank-ordering holds up. Before using these probabilities for pricing or loss forecasting, recalibrate them on recent data (e.g., Platt or isotonic).
-4. **"Expanded" ≠ truly alternative data.** These are credit-bureau attributes beyond the score, not cash-flow, rent, or utility data. The same framework (benchmark → challenger with new data → business impact) applies directly to evaluating real alternative data.
-5. **Fair lending.** A production model would need disparate-impact testing and adverse-action reason codes. SHAP values provide a starting point for the reason codes.
+3. **Vintage drift.** Even after recalibration, 2015 risk is under-predicted by about 1.3 percentage points (see *Probability calibration*). Next step: a monitoring dashboard of predicted vs. actual defaults by vintage and segment.
+4. **"Expanded" ≠ truly alternative data.** These are credit-bureau attributes beyond the score, not cash-flow, rent, or utility data. The same framework (benchmark → challenger with new data → business and fairness impact) applies directly to evaluating real alternative data.
+5. **Area-level fairness proxy.** Results describe *areas*, not individuals, and use 2017–2021 demographics for 2015 loans. A full review would use BISG (surname + geography) proxies and test less-discriminatory alternatives, starting with the LMI-area gap.
 
 ## Reproduce
 
 ```bash
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-./run.sh      # downloads data (~1.6 GB), then prepare -> train -> analyze (~2 min)
+./run.sh      # downloads data (~1.7 GB), then prepare -> train -> analyze -> calibrate -> fair lending (~4 min)
 ```
 
 | File | Purpose |
@@ -84,7 +124,11 @@ pip install -r requirements.txt
 | `src/prepare_data.py` | Population definition, leakage control, feature engineering |
 | `src/train.py` | Out-of-time training and evaluation of all five scorers |
 | `src/analyze.py` | Approval and profit policy analysis, SHAP drivers, charts |
+| `src/calibrate.py` | Out-of-time recalibration (Platt, isotonic) on the latest vintage |
+| `src/fair_lending.py` | Adverse impact ratios, differential prediction, proxy screen, reason codes |
+| `SUMMARY.md` | One-page plain-language summary |
 | `reports/metrics.json` | Model metrics (all applicants and near-prime) |
 | `reports/business_impact.json` | Headline business numbers |
+| `reports/calibration.json`, `reports/fair_lending.json` | Calibration and fair-lending results |
 
-**Data:** LendingClub accepted loans 2007–2018Q4 (public; mirrored on Hugging Face as `codesignal/lending-club-loan-accepted`).
+**Data:** LendingClub accepted loans 2007–2018Q4 (public; mirrored on Hugging Face as `codesignal/lending-club-loan-accepted`). U.S. Census Bureau ACS 2017–2021 5-year tables B03002 and B19013 (table-based summary file).
