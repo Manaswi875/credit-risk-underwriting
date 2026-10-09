@@ -160,7 +160,7 @@ def fig_profit(df):
         ax.plot(c["approval_rate"] * 100, c["profit_per_applicant"], color=color, label=label)
     ax.set_xlabel("Approval rate (%)")
     ax.set_ylabel("Realized net profit per applicant ($)")
-    ax.set_title("Better risk ranking earns more at every approval rate")
+    ax.set_title("Expanded model earns more at every approval rate below 100%")
     ax.legend(loc="lower center")
     fig.tight_layout()
     fig.savefig(REPORTS / "fig_profit.png")

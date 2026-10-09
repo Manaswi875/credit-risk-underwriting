@@ -1,4 +1,4 @@
-# Better Data for Fairer, Safer Lending: One-Page Summary
+# Better Data for Safer Lending, Checked for Fairness: One-Page Summary
 
 *A plain-language summary of this project. For the technical details, see the [README](README.md).*
 
@@ -29,18 +29,19 @@ The strongest warning signs were monthly payment relative to income, credit scor
 
 Lending models must not disadvantage people based on race or where they live. The data doesn't record race, so I used Census data to group loans by the demographics and income of each borrower's area.
 
-- **Approval rates stayed close across areas.** Areas with the highest share of minority residents were approved at 98% of the rate of the lowest-share areas. Lower-income areas were approved at 94%. The common regulatory warning line is 80%.
-- **The model didn't overstate risk for any group.** If anything, it slightly *under*estimated defaults in higher-minority and lower-income areas.
-- **Every declined applicant can be told why.** The model produces specific reasons, such as "payment too high relative to income," which lenders are legally required to give.
+- **Approval rates stayed close across areas.** Areas with the highest share of minority residents were approved at 98% of the rate of the lowest-share areas. Lower-income areas were approved at 94%. A common rule of thumb flags anything below 80%.
+- **The model didn't overstate risk for any group.** It underestimated defaults everywhere, slightly more so in higher-minority and lower-income areas.
+- **Declined applicants can be told why.** The model produces specific reasons for each decision, such as "payment too high relative to income," which lenders are legally required to give.
 
 One item to watch: in lower-income areas, the new model approves slightly fewer people than LendingClub's grade did (94% vs. 95% of the reference rate). It's well within guidelines, but it's the first thing I would monitor.
 
 ## What it can't tell us yet
 
 - **Only approved loans are in the data.** We can't see how rejected applicants would have done.
-- **Conditions change.** Defaults rose in 2015, and the model's risk estimates ran low (13.6% predicted vs. 14.9% actual). Adjusting on the most recent year helped only a little. A real lender would need to monitor the model and update it regularly.
+- **The fairness check looks at neighborhoods, not individuals.** The data has no race information, so results describe areas (3-digit ZIP codes), which is a rough view.
+- **Conditions change.** Defaults rose in 2015. Even after adjusting the model on the most recent year, it predicted a 13.6% default rate against 14.9% actual. A real lender would need to monitor the model and update it regularly.
 - **Profit figures are simplified.** They leave out funding and servicing costs.
 
 ## Bottom line
 
-**A careful look beyond the credit score can let a lender say "yes" to more people at the same risk, without creating unfair outcomes,** provided it keeps checking that both stay true over time.
+**A careful look beyond the credit score can let a lender say "yes" to more people at the same risk, with no sign of unfair outcomes in this area-level check,** provided it keeps checking that both stay true over time.

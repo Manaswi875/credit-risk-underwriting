@@ -29,17 +29,17 @@ With only the core application fields, neither logistic regression nor XGBoost b
 
 ## Approach
 
-**Population.** 36-month loans issued 2012–2015 that reached a final outcome (Fully Paid or Charged Off). Only fully matured vintages are used. Keeping recent vintages would keep only the loans that ended *early*, which over-represents defaults and prepayments.
+**Population.** 36-month loans issued 2012–2015 that reached a final outcome (Fully Paid or Charged Off). These vintages have essentially all run their course: only 147 loans (0.02%) were still open and were excluded. Using recent vintages would keep only the loans that ended *early*, which over-represents defaults and prepayments.
 
 **Out-of-time split.** Train on the 2012–2014 vintages (306K loans, 13.3% default rate). Test on the 2015 vintage (283K loans, 14.9% default rate). This mirrors real deployment: a model built on past loans has to perform on future ones, even as the credit mix shifts.
 
-**No leakage.** Only fields known at application time are model inputs. Post-origination fields (payments, recoveries, updated FICO) are used only to measure each loan's realized profit.
+**No leakage.** Only fields known at application time are model inputs. Post-origination fields (payments, recoveries, updated FICO, etc.) are excluded; total payments received are used only to measure each loan's realized profit, never as a feature.
 
 **Feature sets.**
 - *Core (10 features):* FICO, DTI, income, loan amount, employment length, payment-to-income, loan-to-income, home ownership, purpose, income verification. This is roughly what a score-driven underwriter sees.
 - *Expanded (48 features):* core plus 38 credit-file attributes, including revolving and bankcard utilization, accounts opened recently, months since the last inquiry and the newest card, account age, delinquency history, and limits and balances. These stand in for evaluating a new data source.
 
-**Models.** Logistic regression (quantile-normalized, L2-regularized), the industry-standard scorecard baseline, and XGBoost (early-stopped). Both are fit on each feature set. LendingClub's sub-grade, its own priced risk model, is the benchmark.
+**Models.** Logistic regression (quantile-normalized, L2-regularized), the standard baseline in credit scoring, and XGBoost (early-stopped). Both are fit on each feature set. LendingClub's sub-grade, its own priced risk model, is the benchmark.
 
 **Business translation.** Rank applicants by predicted risk and approve the lowest-risk X%. Then measure the default rate and realized profit (total payments − amount funded) of the approved book, and compare policies at equal approval rate and at equal default rate.
 
@@ -59,7 +59,7 @@ With only the core application fields, neither logistic regression nor XGBoost b
 
 ![Top risk drivers](reports/fig_drivers.png)
 
-**Profit.** At every approval rate, better risk ranking earns more realized profit per applicant.
+**Profit.** The expanded model earns more realized profit per applicant than both the benchmark and the core model at every approval rate below 100% (at 100% everyone is approved, so all scorers are equal).
 
 ![Profit vs approval rate](reports/fig_profit.png)
 
@@ -67,23 +67,23 @@ With only the core application fields, neither logistic regression nor XGBoost b
 
 Ranking risk well is not the same as predicting the *level* of risk correctly. Pricing, loss forecasts, and reserves depend on the level. To recalibrate without touching the test year, `src/calibrate.py` fits the expanded XGBoost on 2012–2013, calibrates on 2014 (the latest vintage a lender would have in hand), and evaluates on 2015.
 
-| 2015 test | Uncalibrated | Platt scaling | Isotonic |
+| 2015 test (model fit on 2012–13) | Uncalibrated | Platt scaling | Isotonic |
 |---|---|---|---|
 | Expected calibration error (pct pts) | 1.90 | 1.32 | **1.29** |
 | Brier score | 0.1199 | 0.1197 | 0.1197 |
 | Mean predicted vs. observed default | 13.0% vs. 14.9% | 13.6% vs. 14.9% | 13.6% vs. 14.9% |
 
-**Finding:** recalibration cuts calibration error by about a third, but a gap remains. The Platt slope is 0.96, so the model's risk *shape* is nearly right. The miss is a level shift: 2015 loans simply defaulted more than 2014 loans (14.9% vs. 13.7%). No calibrator fit on past data can anticipate that. The production answer is ongoing monitoring of the gap between predicted and actual defaults by vintage, with periodic recalibration as early-delinquency data arrives, not a one-time fix.
+**Finding:** recalibration cuts calibration error by about a third, but a gap remains. The Platt slope is 0.96, so the model's risk *shape* is nearly right. The miss is a level shift: 2015 loans simply defaulted more than 2014 loans (14.9% vs. 13.7%). A calibrator fit only on past outcomes cannot anticipate that kind of shift. The production answer is ongoing monitoring of the gap between predicted and actual defaults by vintage, with periodic recalibration as early-delinquency data arrives, not a one-time fix.
 
-Trade-off: holding out 2014 for calibration means the calibrated model trains on less recent data (AUC 0.688 vs. 0.698 for the main model). In practice you refit on all vintages and carry the calibration mapping forward, re-checking it each quarter.
+Trade-off: holding out 2014 for calibration means the calibrated model trains on less recent data (AUC 0.688 vs. 0.698 for the main model). In practice the calibration is re-estimated on the most recent held-out outcomes each time the model is refit, and monitored in between.
 
 ![Calibration](reports/fig_calibration.png)
 
 ## Fair-lending review
 
-LendingClub data has no applicant race, ethnicity, or sex, and none of those are model inputs. To test for disparate impact, `src/fair_lending.py` uses an **area-level proxy**, the standard approach in redlining reviews. Each loan's 3-digit ZIP is joined to **Census ACS 2017–2021** data on minority population share and median household income (99.97% of loans matched).
+LendingClub data has no applicant race, ethnicity, or sex, and none of those are model inputs. To test for disparate impact, `src/fair_lending.py` uses an **area-level proxy**, similar to the geographic analysis used in redlining reviews (those typically use census tracts; LendingClub only discloses 3-digit ZIPs, so this is coarser). Each loan's 3-digit ZIP is joined to **Census ACS 2017–2021** data on minority population share and median household income (99.97% of loans matched).
 
-**1. Adverse impact ratio (AIR).** This is each group's approval rate divided by the reference group's, under an 80% approval policy. The four-fifths rule flags an AIR below 0.80.
+**1. Adverse impact ratio (AIR).** This is each group's approval rate divided by the reference group's, under an 80% approval policy. A common rule of thumb, borrowed from the employment-law four-fifths rule, flags an AIR below 0.80. It is a screening heuristic, not a legal safe harbor.
 
 | Group (reference) | LendingClub grade | XGBoost core | XGBoost expanded |
 |---|---|---|---|
@@ -91,15 +91,15 @@ LendingClub data has no applicant race, ethnicity, or sex, and none of those are
 | Majority-minority areas (vs. other) | 0.988 | 0.991 | 0.988 |
 | Low/moderate-income areas (vs. other) | 0.953 | 0.948 | **0.942** |
 
-All groups clear the threshold by a wide margin. The new model **does not widen the gap by area minority share**. It does slightly lower the LMI-area ratio versus the incumbent (0.942 vs. 0.953). That is the item to monitor and the starting point for a less-discriminatory-alternative search.
+All groups clear the 0.80 screen by a wide margin. By area minority share, the new model's ratios are **essentially unchanged from the benchmark** (0.983 vs. 0.983; 0.988 vs. 0.988). It does slightly lower the LMI-area ratio versus the incumbent (0.942 vs. 0.953). That is the item to monitor and the starting point for a less-discriminatory-alternative search.
 
 ![Fairness](reports/fig_fairness.png)
 
 **2. Differential prediction.** The model does not over-predict risk for any group. Its default predictions run *below* actual defaults everywhere (the vintage drift above), and the gap is largest in highest-minority areas (13.9% predicted vs. 15.9% observed) and LMI areas (14.8% vs. 16.9%). Ranking quality (AUC) is consistent across minority-share quartiles (0.694–0.700) and slightly lower in LMI areas (0.689).
 
-**3. Proxy screen.** No model input is a strong proxy for area minority share. The highest absolute Spearman correlation is 0.14 (number of mortgage accounts). ZIP code and state are not model inputs.
+**3. Proxy screen.** No numeric model input is strongly correlated with area minority share: the highest absolute Spearman correlation is 0.14 (number of mortgage accounts). This is an area-level screen; it does not rule out individual-level proxy effects, and the categorical inputs (home ownership, purpose, income verification) were not screened. ZIP code and state are not model inputs.
 
-**4. Adverse-action reason codes.** ECOA and Regulation B require specific reasons for a decline. For each declined applicant, the top risk-increasing SHAP contributions give those reasons. The most common principal reasons are payment-to-income (32%), accounts opened in the last 24 months (24%), and debt-to-income (10%). All are specific and actionable, and none is a demographic proxy.
+**4. Adverse-action reason codes.** ECOA and Regulation B require specific reasons for a decline. For a sample of 20,000 declined applicants, the top risk-increasing SHAP contributions (XGBoost TreeSHAP) were used as reason codes. The most common principal reasons are payment-to-income (32%), accounts opened in the last 24 months (24%), and debt-to-income (10%). All are specific credit factors, and none is a demographic attribute.
 
 ![Reason codes](reports/fig_reason_codes.png)
 
@@ -116,7 +116,7 @@ All groups clear the threshold by a wide margin. The new model **does not widen 
 ```bash
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-./run.sh      # downloads data (~1.7 GB), then prepare -> train -> analyze -> calibrate -> fair lending (~4 min)
+./run.sh      # downloads data (~1.7 GB), then prepare -> train -> analyze -> calibrate -> fair lending (~2 min after download)
 ```
 
 | File | Purpose |

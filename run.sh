@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 RAW=data/raw/accepted_2007_to_2018Q4.csv
 if [ ! -f "$RAW" ]; then
   mkdir -p data/raw
-  echo "Downloading LendingClub accepted loans (~1.6 GB)..."
+  echo "Downloading LendingClub accepted loans (~1.7 GB)..."
   curl -L -o "$RAW" \
     "https://huggingface.co/datasets/codesignal/lending-club-loan-accepted/resolve/main/accepted_2007_to_2018Q4.csv"
 fi
