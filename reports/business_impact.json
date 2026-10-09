@@ -1,0 +1,66 @@
+{
+  "vs_lendingclub_grade_all": {
+    "approval_rate_policy": 0.8,
+    "benchmark_default_rate": 0.1189,
+    "model_default_rate": 0.1138,
+    "relative_default_reduction": 0.0433,
+    "defaults_avoided_per_100k": 412,
+    "profit_lift_per_100k_usd": 5761458,
+    "same_risk_model_approval_rate": 0.8375,
+    "extra_approvals_per_100k_at_same_risk": 3750
+  },
+  "vs_lendingclub_grade_near_prime": {
+    "approval_rate_policy": 0.8,
+    "benchmark_default_rate": 0.1506,
+    "model_default_rate": 0.1445,
+    "relative_default_reduction": 0.0407,
+    "defaults_avoided_per_100k": 490,
+    "profit_lift_per_100k_usd": 6580469,
+    "same_risk_model_approval_rate": 0.845,
+    "extra_approvals_per_100k_at_same_risk": 4500
+  },
+  "value_of_expanded_data_vs_core_xgb": {
+    "approval_rate_policy": 0.8,
+    "benchmark_default_rate": 0.1183,
+    "model_default_rate": 0.1138,
+    "relative_default_reduction": 0.0382,
+    "defaults_avoided_per_100k": 361,
+    "profit_lift_per_100k_usd": 3955597,
+    "same_risk_model_approval_rate": 0.8325,
+    "extra_approvals_per_100k_at_same_risk": 3250
+  },
+  "profit_maximizing_policy": {
+    "incumbent": {
+      "approval_rate": 0.995,
+      "default_rate": 0.1474,
+      "profit_per_100k_usd": 84040723
+    },
+    "xgb_core": {
+      "approval_rate": 1.0,
+      "default_rate": 0.1489,
+      "profit_per_100k_usd": 83890915
+    },
+    "xgb_expanded": {
+      "approval_rate": 0.97,
+      "default_rate": 0.1412,
+      "profit_per_100k_usd": 85160055
+    }
+  },
+  "top_drivers_mean_abs_shap": {
+    "payment_to_income": 0.24169999361038208,
+    "fico": 0.18019999563694,
+    "acc_open_past_24mths": 0.16200000047683716,
+    "dti": 0.13770000636577606,
+    "home_ownership": 0.08190000057220459,
+    "percent_bc_gt_75": 0.07959999889135361,
+    "mths_since_recent_bc": 0.07859999686479568,
+    "purpose": 0.07590000331401825,
+    "loan_to_income": 0.07079999893903732,
+    "mo_sin_old_rev_tl_op": 0.06769999861717224,
+    "log_annual_inc": 0.06430000066757202,
+    "total_acc": 0.06340000033378601,
+    "mo_sin_rcnt_tl": 0.06300000101327896,
+    "mths_since_recent_inq": 0.05999999865889549,
+    "total_il_high_credit_limit": 0.058400001376867294
+  }
+}

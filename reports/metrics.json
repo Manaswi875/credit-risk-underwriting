@@ -1,0 +1,90 @@
+{
+  "incumbent": {
+    "all": {
+      "auc": 0.6787,
+      "gini": 0.3573,
+      "ks": 0.2619
+    },
+    "near_prime": {
+      "auc": 0.6435,
+      "gini": 0.287,
+      "ks": 0.2078
+    }
+  },
+  "logit_core": {
+    "all": {
+      "auc": 0.6771,
+      "gini": 0.3542,
+      "ks": 0.2608,
+      "brier": 0.1216,
+      "log_loss": 0.4001
+    },
+    "near_prime": {
+      "auc": 0.6425,
+      "gini": 0.2851,
+      "ks": 0.207,
+      "brier": 0.1429,
+      "log_loss": 0.4568
+    }
+  },
+  "xgb_core": {
+    "all": {
+      "auc": 0.6758,
+      "gini": 0.3516,
+      "ks": 0.2536,
+      "brier": 0.1211,
+      "log_loss": 0.3979
+    },
+    "near_prime": {
+      "auc": 0.641,
+      "gini": 0.2821,
+      "ks": 0.2055,
+      "brier": 0.142,
+      "log_loss": 0.4538
+    }
+  },
+  "logit_expanded": {
+    "all": {
+      "auc": 0.6944,
+      "gini": 0.3887,
+      "ks": 0.2849,
+      "brier": 0.1197,
+      "log_loss": 0.393
+    },
+    "near_prime": {
+      "auc": 0.6629,
+      "gini": 0.3258,
+      "ks": 0.2355,
+      "brier": 0.1404,
+      "log_loss": 0.4484
+    }
+  },
+  "xgb_expanded": {
+    "all": {
+      "auc": 0.6979,
+      "gini": 0.3958,
+      "ks": 0.2854,
+      "brier": 0.1188,
+      "log_loss": 0.3896
+    },
+    "near_prime": {
+      "auc": 0.6668,
+      "gini": 0.3337,
+      "ks": 0.2404,
+      "brier": 0.1391,
+      "log_loss": 0.4439
+    }
+  },
+  "_meta": {
+    "train_vintages": "2012-2014",
+    "test_vintage": 2015,
+    "n_train": 306462,
+    "n_test": 283026,
+    "test_default_rate": 0.1489,
+    "n_test_near_prime": 182168,
+    "n_features": {
+      "core": 10,
+      "expanded": 48
+    }
+  }
+}

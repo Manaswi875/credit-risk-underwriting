@@ -1,0 +1,7 @@
+.venv/
+data/
+models/
+reports/test_predictions.parquet
+__pycache__/
+.DS_Store
+.ipynb_checkpoints/
